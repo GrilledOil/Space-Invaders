@@ -1,0 +1,76 @@
+using System.Collections;
+using System.Collection.Generic;
+using UnityEngine;
+
+public class Bullet : MonoBehaviour
+{
+    public float bulletSpeed;
+    public float deathTimer = 3f;
+    public int bulletDamage;
+    public Animator animator;
+
+    void Start()
+    {
+        rb = gameObject.GetComponent<Rigidbody2D>();
+        animator = gameObject.GetComponent<Animator>();
+    }
+
+    private IEnumerator Death(float deathTime)
+    {
+        Destroy(rb);
+        animator.SetTrigger("Impact");
+
+        yield return new WaitForSeconds(deathTime);
+        Destroy(gameObject);
+    }
+
+    void OnTriggerEnter2D(Collision2D coll)
+    {
+        if (coll.tag == "Enemy")
+        {
+            coll.GetComponent<EnemyHealth>().health -= bulletDamage;
+        }
+        StartCoroutine(Death(deathTimer));
+    }
+}
+
+public class PlayerShooting : MonoBehaviour
+{
+    public bool isMoving;
+    public bool canShoot;
+    public GameObject Player;
+
+    public GameObject BulletPrefab;
+    public float bulletSpeed;
+    public float bulletCooldown;
+    public int bulletDamage;
+
+    void Start()
+    {
+        isMoving = Player.GetComponent<PlayerMovement>().isMoving;
+    }
+
+    void Update()
+    {
+        if (!isMoving && canShoot)
+        {
+            StartCoroutine(Shoot(bulletCooldown));
+        }
+    }
+
+    private IEnumerator Shoot(float waitTime)
+    {
+        canShoot = false;
+
+        new GameObject clone;
+
+        clone = Instantiate(BulletPrefab, tansform.position, transform.rotation);
+        clone.GetComponent<Rigidbody2D>().velocity = transform.TransformDirection(Vector2.up * bulletSpeed);
+        
+        clone.bulletDamage = bulletDamage;
+        clone.bulletSpeed = bulletSpeed;
+
+        yield return new WaitForSeconds(waitTime);
+        canShoot = true;
+    } 
+}
