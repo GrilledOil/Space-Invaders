@@ -24,15 +24,15 @@ public class PlayerHealth : MonoBehaviour
         canTakeDamage = false;
         lives--;
 
+        if (lives == 0)
+        {
+            gameObject.Find("GameManager").GetComponent<GameManager>().PermaDeath();
+        }
+
         animator.SetTrigger("TemporaryDeath");
 
         yield return new WaitForSeconds(invincibilityTimer);
 
         canTakeDamage = true;
-
-        if (lives == 0)
-        {
-            gameObject.Find("GameManager").GetComponent<GameManager>().PermaDeath();
-        }
     }
 }
