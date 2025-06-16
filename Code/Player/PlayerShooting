@@ -40,7 +40,7 @@ public class PlayerShooting : MonoBehaviour
     public bool canShoot;
     public GameObject Player;
 
-    public GameObject BulletPrefab;
+    public Bullet BulletPrefab;
     public float bulletSpeed;
     public float bulletCooldown;
     public int bulletDamage;
