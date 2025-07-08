@@ -2,49 +2,42 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
 public class Bullet : MonoBehaviour
 {
-    public float bulletSpeed;
-
-    public Animator animator;
-
     void Start()
     {
-        animator = gameObject.GetComponent<Animator>();
+        Destroy(gameObject, 5f);
     }
-
-    private IEnumerator Death()
+    void OnTriggerEnter2D()
     {
         Destroy(gameObject);
-        yield break;
-    }
-
-    void OnTriggerEnter2D(Collider2D coll)
-    {
-        if (coll.gameObject.tag == "Enemy")
-        {
-            coll.gameObject.GetComponent<EnemyShooting>().ShootingChance(40);
-        }
-        StartCoroutine(Death());
     }
 }
 
 public class PlayerShooting : MonoBehaviour
 {
-    public bool isMoving = false;
-    public bool canShoot = true;
-    public GameObject Player;
+    public AudioClip shootSoundClip;
+
+    private bool canShoot = true;
+
+    private GameObject camera;
 
     public GameObject BulletPrefab;
-    public float bulletSpeed;
-    public float bulletCooldown;
+    private float bulletSpeed = 7f;
+    public float bulletCooldown = 1.5f;
+
+    void Awake()
+    {
+        camera = GameObject.Find("cams");
+    }
 
     void Update()
     {
-        isMoving = Player.GetComponent<PlayerMovement>().isMoving;
-
-        if (isMoving == false && canShoot)
+        // X button on Xbox controller is JoystickButton2
+        if (Input.anyKeyDown && canShoot == true)
         {
+            bulletCooldown = Mathf.Clamp(bulletCooldown, 0.5f, 1.5f);
             StartCoroutine(Shoot(bulletCooldown));
         }
     }
@@ -53,13 +46,13 @@ public class PlayerShooting : MonoBehaviour
     {
         canShoot = false;
 
+        AudioSource.PlayClipAtPoint(shootSoundClip, camera.transform.position, 1f);
+
         GameObject clone = Instantiate(BulletPrefab, transform.position, transform.rotation);
         Rigidbody2D bulletRB = clone.GetComponent<Rigidbody2D>();
         bulletRB.velocity = transform.TransformDirection(Vector2.up * bulletSpeed);
 
         Bullet bullet = clone.AddComponent<Bullet>();
-
-        bullet.bulletSpeed = bulletSpeed;
 
         yield return new WaitForSeconds(waitTime);
         canShoot = true;

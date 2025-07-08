@@ -4,37 +4,23 @@ using UnityEngine;
 
 public class EnemyBullet : MonoBehaviour
 {
-    public Rigidbody2D rb;
-
-    public float bulletSpeed;
-    public float deathTimer = 0.5f;
-    public Animator animator;
-
-    void Start()
-    {
-        rb = gameObject.GetComponent<Rigidbody2D>();
-        animator = gameObject.GetComponent<Animator>();
-    }
-
-    private IEnumerator Death(float deathTime)
+    private void Death()
     {
         Destroy(gameObject.GetComponent<BoxCollider2D>());
         Destroy(gameObject.GetComponent<Rigidbody2D>());
 
-        animator.SetTrigger("Impact");
+        gameObject.GetComponent<Animator>().SetTrigger("Impact");
 
-        yield return new WaitForSeconds(deathTime);
-        
-        Destroy(gameObject);
+        Destroy(gameObject, 0.5f);
     }
 
     void OnTriggerEnter2D(Collider2D coll)
     {
         if (coll.gameObject.tag == "Player")
         {
-            coll.gameObject.GetComponent<PlayerHealth>().TakeDamage();
+            coll.gameObject.GetComponent<PlayerHealth>().LoseLife();
         }
-        StartCoroutine(Death(deathTimer));
+        Death();
     }
 }
 
@@ -44,8 +30,8 @@ public class EnemyShooting : MonoBehaviour
 
     private bool canShoot = true;
 
-    public float bulletCooldown = 2f;
-    public int chanceToShoot;
+    private float bulletCooldown = 2f;
+    private int chanceToShoot = 9;
 
     public float bulletSpeed;
 
@@ -59,32 +45,24 @@ public class EnemyShooting : MonoBehaviour
 
 
     // The actual shooting
-    private IEnumerator Shoot(float waitTime)
+    private void Shoot()
     {
-        canShoot = false;
+        GameObject clone = Instantiate(BulletPrefab, new Vector3(transform.position.x, transform.position.y-0.5f), transform.rotation);
+        Rigidbody2D bulletRB = clone.GetComponent<Rigidbody2D>();
+        bulletRB.velocity = transform.TransformDirection(Vector2.down * bulletSpeed);
 
-        GameObject clone = Instantiate(BulletPrefab, new Vector3(transform.position.x, transform.position.y-0.5f), transform.rotation); // Spawns enemy bullet
-        Rigidbody2D bulletRB = clone.GetComponent<Rigidbody2D>(); // Gets bullets rigidbody
-        bulletRB.velocity = transform.TransformDirection(Vector2.down * bulletSpeed); // Gives bullet velocity
         EnemyBullet bullet = clone.AddComponent<EnemyBullet>();
-
-        bullet.bulletSpeed = bulletSpeed;
-
-        yield return new WaitForSeconds(waitTime);
-        canShoot = true;
     }
 
-    public IEnumerator ShootingChance(float chanceShoot) // Decides whether or not the enemy will shoot every x amount of seconds
+    public IEnumerator ShootingChance(int chanceShoot) // Decides whether or not the enemy will shoot every x amount of seconds
     {
         canShoot = false;
         if (Random.Range(0, 100) <= chanceShoot)
         {
-            StartCoroutine(Shoot(bulletCooldown));
+            Shoot();
         }
-        else
-        {
-            yield return new WaitForSeconds(bulletCooldown);
-            canShoot = true;
-        }
+
+        yield return new WaitForSeconds(bulletCooldown);
+        canShoot = true;
     }
 }

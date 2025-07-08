@@ -4,52 +4,39 @@ using UnityEngine;
 
 public class EnemyMovement : MonoBehaviour
 {
-    public int screenSize = 7;
-
     private float movementTime;
-    private Rigidbody2D rb;
-
-    private float moveDivide = 14;
-
-    private float moveAmount;
+    private int direction = 1;
+    private const float moveDivide = 10;
 
     void Start()
     {
-        movementTime = GameObject.Find("GameManager").GetComponent<GameManagement>().moveTime;
-        moveAmount = GameObject.Find("GameManager").GetComponent<WaveSystem>().enemyPerRow;
-
-        rb = gameObject.GetComponent<Rigidbody2D>();
-
-
         StartCoroutine(Movement());
     }
 
     void Update()
     {
-
+        movementTime = GameObject.Find("GameManager").GetComponent<GameManagement>().moveTime;
     }
 
     IEnumerator Movement() 
     {
+        var gm = GameObject.Find("GameManager").GetComponent<GameManagement>();
         while (true) // Enemy moves infinitely until either enemy or player dies
         {
-            for (int i = 0; i < moveDivide*2; i++)
+            while (!gm.canSwitch)
             {
-                yield return new WaitForSeconds(movementTime); // The amount of time between movements
-                transform.position += new Vector3(1f/moveDivide, 0f, 0f);
+                yield return new WaitForSeconds(movementTime);
+                transform.position += new Vector3(direction * (1f / moveDivide), 0f, 0f);
             }
 
-            yield return new WaitForSeconds(movementTime); // The amount of time between movements
-            transform.position -= new Vector3(0f, 1.5f, 0f);
+            yield return new WaitForSeconds(movementTime);
+            transform.position -= new Vector3(0f, .75f, 0f);
+            direction *= -1;
 
-            for (int i = 0; i < moveDivide*2; i++)
+            while (gm.canSwitch)
             {
-                yield return new WaitForSeconds(movementTime); // The amount of time between movements
-                transform.position -= new Vector3(1f/moveDivide, 0f, 0f);
+                yield return null;
             }
-
-            yield return new WaitForSeconds(movementTime); // The amount of time between movements
-            transform.position -= new Vector3(0f, 1.5f, 0f);
         }
     }
 }
