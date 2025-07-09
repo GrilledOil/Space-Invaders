@@ -142,6 +142,10 @@ public class GameManagement : MonoBehaviour
 
     private void Save()
     {
+        //int highScore = score > hiScore ? score : hiScore;
+
+        //PlayerPrefs.SetInt("highScore", highScore);
+        //PlayerPrefs.Save();
         SaveObject saveObject = new SaveObject
         {
             highScore = score > hiScore ? score : hiScore
@@ -153,6 +157,13 @@ public class GameManagement : MonoBehaviour
     }
     private void Load()
     {
+        int highScore = PlayerPrefs.GetInt("highScore", 0);
+
+        if (highScore > hiScore)
+        {
+            hiScore = highScore;
+        }
+    
         string path = Application.persistentDataPath + "/Saves/" + "/save.txt";
 
         string saveString = SaveSystem.Load(path);
